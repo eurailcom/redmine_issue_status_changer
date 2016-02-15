@@ -25,7 +25,7 @@
         <%= check_box_tag "settings[status_change][#{tracker.id}]", "1", @settings[:status_change][tracker.id.to_s] %>
         <br/><br/>
         <label id="settings_new_status_<%= tracker.id %>_label"><%= l(:new_status) %></label>
-        <%= select_tag "settings[new_status][#{tracker.id}", options_for_select(IssueStatus.joins(:workflow_transitions_as_new_status).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 1).uniq.map {|s| [s.name, s.id]},@settings[:new_status][tracker.id.to_s]) %>
+        <%= select_tag "settings[new_status][#{tracker.id}", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 1).uniq.map {|s| [s.name, s.id]},@settings[:new_status][tracker.id.to_s]) %>
     </p>
 </fieldset>
 <% end %>

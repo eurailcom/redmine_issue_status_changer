@@ -39,9 +39,9 @@ module IssueStatusChanger
                 i = Issue.find issue.id
                 new_status = IssueStatus.find get_next_state(i.tracker_id)
 
-                puts i.id.to_s + " " + i.subject + ": " + (IssueStatus.find i.status_id).name + " --> " + new_status.name
-                i.update_attribute :status,  new_status
+                #puts i.id.to_s + " " + i.subject + ": " + (IssueStatus.find i.status_id).name + " --> " + new_status.name
                 i.init_journal(User.anonymous, status_message)
+                i.update_attribute :status,  new_status
             end
         end
     end

@@ -1,0 +1,10 @@
+# English strings go here for Rails i18n
+en:
+  issue_status_change: "Change issue status automatically"
+  issue_status_change_help: "This plugin does not change the status unless you define a cron job that runs a rake task periodically. This task is:"
+  issue_status_change_rake_task: "rake redmine:plugins:issue_status_change:close_issues_with_all_subtasks_closed RAILS_ENV=production"
+  change_status_label: "Change status when all subtasks are done"
+  new_status: "Closed status"
+  status_message: "Automatically changing status because all subtasks are solved"
+  status_message_label: "Journal message when status is changed"
+  status_message_legend: "Journal"

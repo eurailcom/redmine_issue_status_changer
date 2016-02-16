@@ -15,6 +15,10 @@ Redmine::Plugin.register :redmine_issue_status_changer do
   }, :partial => 'settings/issue_status_change'
 
   settings[:default]["change_status"] = Hash.new
-  settings[:default]["new_status"] = Hash.new
+  settings[:default]["new_status"]= Hash.new
+  settings[:default]["change_status"]["close"] = Hash.new
+  settings[:default]["new_status"]["close"] = Hash.new
+  settings[:default]["change_status"]["open"] = Hash.new
+  settings[:default]["new_status"]["open"] = Hash.new
 
 end

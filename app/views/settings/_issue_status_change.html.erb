@@ -3,51 +3,85 @@
 <pre><%= l(:issue_status_change_rake_task) %></pre>
 
 
-<% settings['status_change'] = Hash.new if settings['status_change'] == nil %>
-<% settings['new_status'] = Hash.new if settings['new_status'] == nil %>
-<% settings['status_message'] = l(:status_message) if settings['status_message'] == nil %>
+<% settings['status_change']['close'] = Hash.new if settings['status_change']['close'] == nil %>
+<% settings['new_status']['close'] = Hash.new if settings['new_status']['close'] == nil %>
+
+<% settings['status_change']['open'] = Hash.new if settings['status_change']['open'] == nil %>
+<% settings['new_status']['open'] = Hash.new if settings['new_status']['open'] == nil %>
+
+<% settings['status_message_closed'] = l(:status_message_closed) if settings['status_message_closed'] == nil %>
+<% settings['status_message_open'] = l(:status_message_open) if settings['status_message_open'] == nil %>
 
 <fieldset>
   <legend><%= l(:status_message_legend) %></legend>
   <p>
-    <label><%= l(:status_message_label) %></label>
-    <%= text_field_tag "settings[status_message]", settings[:status_message] %>
+    <label><%= l(:status_message_label_closed) %></label>
+    <%= text_field_tag "settings[status_message_closed]", settings[:status_message_closed] %>
+  </p>
+  <p>
+    <label><%= l(:status_message_label_open) %></label>
+    <%= text_field_tag "settings[status_message_open]", settings[:status_message_open] %>
   </p>
 </fieldset>
 
 <% Tracker.all.each do |tracker| %>
 
-
 <fieldset>
     <legend><%= tracker.name %></legend>
     <p>
-        <label><%= l(:change_status_label) %></label>
-        <%= check_box_tag "settings[status_change][#{tracker.id}]", "1", @settings[:status_change][tracker.id.to_s] %>
+        <label><%= l(:change_closed_label) %></label>
+        <%= check_box_tag "settings[status_change][close][#{tracker.id}]", "1", @settings[:status_change]['close'][tracker.id.to_s] %>
         <br/><br/>
-        <label id="settings_new_status_<%= tracker.id %>_label"><%= l(:new_status) %></label>
-        <%= select_tag "settings[new_status][#{tracker.id}", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 1).uniq.map {|s| [s.name, s.id]},@settings[:new_status][tracker.id.to_s]) %>
+        <label id="settings_new_status_close_<%= tracker.id %>_label"><%= l(:new_status) %></label>
+        <%= select_tag "settings[new_status][close][#{tracker.id}", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 1).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['close'][tracker.id.to_s]) %>
+    </p>
+
+    <p>
+        <label><%= l(:change_open_label) %></label>
+        <%= check_box_tag "settings[status_change][open][#{tracker.id}]", "1", @settings[:status_change]['open'][tracker.id.to_s] %>
+        <br/><br/>
+        <label id="settings_new_status_open_<%= tracker.id %>_label"><%= l(:new_status) %></label>
+        <%= select_tag "settings[new_status][open][#{tracker.id}", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 0).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['open'][tracker.id.to_s]) %>
     </p>
 </fieldset>
 <% end %>
 
 <%= javascript_tag do %>
 $(document).ready(function() {
-  $('[id^=settings_status_change_]').click(function() {
+  $('[id^=settings_status_change_close_]').click(function() {
     tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
-    if ($('#settings_status_change_'+tracker_id).is(':checked')) {
-      $('#settings_new_status_'+tracker_id).show();
-      $('#settings_new_status_'+tracker_id+'_label').show();
+    if ($('#settings_status_change_close_'+tracker_id).is(':checked')) {
+      $('#settings_new_status_close_'+tracker_id).show();
+      $('#settings_new_status_close_'+tracker_id+'_label').show();
     }
     else {
-      $('#settings_new_status_'+tracker_id).hide();
-      $('#settings_new_status_'+tracker_id+'_label').hide();
+      $('#settings_new_status_close_'+tracker_id).hide();
+      $('#settings_new_status_close_'+tracker_id+'_label').hide();
     }
   });
-});
 
-$('[id^=settings_status_change_]:not(:checked)').each(function(index) {
+  $('[id^=settings_status_change_open_]').click(function() {
     tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
-    $('#settings_new_status_'+tracker_id).hide();
-    $('#settings_new_status_'+tracker_id+'_label').hide();
+    if ($('#settings_status_change_open_'+tracker_id).is(':checked')) {
+      $('#settings_new_status_open_'+tracker_id).show();
+      $('#settings_new_status_open_'+tracker_id+'_label').show();
+    }
+    else {
+      $('#settings_new_status_open_'+tracker_id).hide();
+      $('#settings_new_status_open_'+tracker_id+'_label').hide();
+    }
+  });
+
+  $('[id^=settings_status_change_open_]:not(:checked)').each(function(index) {
+    tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
+    $('#settings_new_status_open_'+tracker_id).hide();
+    $('#settings_new_status_open_'+tracker_id+'_label').hide();
+  });
+
+  $('[id^=settings_status_change_close_]:not(:checked)').each(function(index) {
+    tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
+    $('#settings_new_status_close_'+tracker_id).hide();
+    $('#settings_new_status_close_'+tracker_id+'_label').hide();
+});
 });
 <% end %>

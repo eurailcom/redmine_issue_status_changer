@@ -9,8 +9,13 @@
 <% settings['status_change']['open'] = Hash.new if settings['status_change']['open'] == nil %>
 <% settings['new_status']['open'] = Hash.new if settings['new_status']['open'] == nil %>
 
+<% settings['status_change']['additional'] = Hash.new if settings['status_change']['additional'] == nil %>
+<% settings['new_status']['additional_from'] = Hash.new if settings['new_status']['additional_from'] == nil %>
+<% settings['new_status']['additional_to'] = Hash.new if settings['new_status']['additional_to'] == nil %>
+
 <% settings['status_message_closed'] = l(:status_message_closed) if settings['status_message_closed'] == nil %>
 <% settings['status_message_open'] = l(:status_message_open) if settings['status_message_open'] == nil %>
+<% settings['status_message_additional'] = l(:status_message_additional) if settings['status_message_additional'] == nil %>
 
 <fieldset>
   <legend><%= l(:status_message_legend) %></legend>
@@ -22,6 +27,11 @@
     <label><%= l(:status_message_label_open) %></label>
     <%= text_field_tag "settings[status_message_open]", settings[:status_message_open] %>
   </p>
+  <p>
+    <label><%= l(:status_message_label_additional) %></label>
+    <%= text_field_tag "settings[status_message_additional]", settings[:status_message_additional] %>
+  </p>
+
 </fieldset>
 
 <% Tracker.all.each do |tracker| %>
@@ -43,6 +53,17 @@
         <label id="settings_new_status_open_<%= tracker.id %>_label"><%= l(:new_status) %></label>
         <%= select_tag "settings[new_status][open][#{tracker.id}", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 0).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['open'][tracker.id.to_s]) %>
     </p>
+
+    <p>
+        <label>Additional status change</label>
+        <%= check_box_tag "settings[status_change][additional][#{tracker.id}]", "1", @settings[:status_change]['additional'][tracker.id.to_s] %>
+        <br/>
+        <span id="new_status_additional_<%= tracker.id %>">
+        If the status of one of the subtasks is
+        <%= select_tag "settings[new_status][additional_from][#{tracker.id}", options_for_select(IssueStatus.all.map {|s| [s.name, s.id]},@settings[:new_status]['additional_from'][tracker.id.to_s]) %>
+        change to
+        <%= select_tag "settings[new_status][additional_to][#{tracker.id}", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['additional_to'][tracker.id.to_s]) %>
+        </span>
 </fieldset>
 <% end %>
 
@@ -72,6 +93,16 @@ $(document).ready(function() {
     }
   });
 
+  $('[id^=settings_status_change_additional_]').click(function() {
+    tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
+    if ($('#settings_status_change_additional_'+tracker_id).is(':checked')) {
+      $('#new_status_additional_'+tracker_id).show();
+    }
+    else {
+      $('#new_status_additional_'+tracker_id).hide();
+    }
+  });
+
   $('[id^=settings_status_change_open_]:not(:checked)').each(function(index) {
     tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
     $('#settings_new_status_open_'+tracker_id).hide();
@@ -82,6 +113,11 @@ $(document).ready(function() {
     tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
     $('#settings_new_status_close_'+tracker_id).hide();
     $('#settings_new_status_close_'+tracker_id+'_label').hide();
-});
+  });
+
+  $('[id^=settings_status_change_additional_]:not(:checked)').each(function(index) {
+    tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
+    $('#new_status_additional_'+tracker_id).hide();
+  });
 });
 <% end %>

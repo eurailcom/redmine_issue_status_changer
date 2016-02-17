@@ -10,4 +10,6 @@ en:
   status_message_label_closed: "Journal message when issue is closed"
   status_message_open: "Automatically changing status there are still open subtasks"
   status_message_label_open: "Journal message when issue is reopened"
+  status_message_label_additional: "Journal message for additional status change"
+  status_message_additional: "Automatically changing status"
   status_message_legend: "Journal"

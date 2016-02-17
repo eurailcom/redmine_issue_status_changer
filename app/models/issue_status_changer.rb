@@ -10,7 +10,7 @@ module IssueStatusChanger
     end
 
     def self.get_enabled_trackers(state = 'open')
-        state = 'close' if (state != 'close' and state != 'open')
+        state = 'close' if (state != 'close' and state != 'open' and state != 'additional')
         settings = Setting['plugin_redmine_issue_status_changer'] || {}
         if settings['status_change'][state] != nil then
             settings['status_change'][state].keys.join(',')
@@ -25,6 +25,14 @@ module IssueStatusChanger
         settings['new_status'][state][tracker_id.to_s].to_i
     end
 
+    def self.is_higher_status(old_status, new_status)
+        if (IssueStatus.find new_status).position > (IssueStatus.find old_status).position then
+            true
+        else
+            false
+        end
+    end
+
     def self.close_issues_with_all_subtasks_closed
         issue_change_state('close')
     end
@@ -33,10 +41,12 @@ module IssueStatusChanger
         issue_change_state('open')
     end
 
+    def self.change_issues_on_subtask_status
+        __change_issues_on_subtask_status()
+    end
+
     def self.issue_change_state(state)
         settings = Setting['plugin_redmine_issue_status_changer'] || {}
-
-        
 
         enabled_trackers = get_enabled_trackers(state)
         if enabled_trackers then
@@ -60,4 +70,29 @@ module IssueStatusChanger
             end
         end
     end
+
+    def self.__change_issues_on_subtask_status()
+        settings = Setting['plugin_redmine_issue_status_changer'] || {}
+        enabled_trackers = get_enabled_trackers('additional')
+
+        status_message = settings['status_message_additional']
+        
+        enabled_trackers.split(',').each { |tracker|
+
+            old_status = settings[:new_status]['additional_from'][tracker]
+            new_status = settings[:new_status]['additional_to'][tracker]
+
+            Issue.where("id IN (SELECT subtasks.parent_id from issues AS subtasks WHERE subtasks.status_id IN (#{new_status}) AND subtasks.parent_id=`issues`.id)").each do |issue|
+                i = Issue.find issue.id
+                if is_higher_status(i.status_id, new_status) then
+                    
+
+                    puts i.id.to_s + " " + i.subject + ": " + (IssueStatus.find i.status_id).name + " --> " + (IssueStatus.find new_status).name
+                    i.init_journal(User.anonymous, status_message)
+                    i.update_attribute :status, (IssueStatus.find new_status)
+                end
+            end
+        }
+    end
 end
+

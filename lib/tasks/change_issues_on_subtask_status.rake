@@ -2,7 +2,7 @@ namespace :redmine do
   namespace :plugins do
     namespace :issue_status_change do
       desc <<-END_DESC
-Bla bla bla
+Change the status of an issue based on the status of (at least) one subtasks
 
   rake redmine:plugins:issue_status_change:change_issues_on_subtask_status RAILS_ENV=production
       END_DESC

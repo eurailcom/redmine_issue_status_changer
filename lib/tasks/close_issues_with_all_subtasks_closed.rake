@@ -2,7 +2,7 @@ namespace :redmine do
   namespace :plugins do
     namespace :issue_status_change do
       desc <<-END_DESC
-Bla bla bla
+Close an issue when all subtasks are closed
 
   rake redmine:plugins:issue_status_change:close_issues_with_all_subtasks_closed RAILS_ENV=production
       END_DESC

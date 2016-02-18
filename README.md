@@ -1,4 +1,4 @@
-# Issue Status Changer #
+# Redmine Issue Status Changer #
 
 This module defines three `rake` tasks for automatically changing the issue status.
 

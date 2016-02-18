@@ -82,7 +82,7 @@ module IssueStatusChanger
             old_status = settings[:new_status]['additional_from'][tracker]
             new_status = settings[:new_status]['additional_to'][tracker]
 
-            Issue.where("id IN (SELECT subtasks.parent_id from issues AS subtasks WHERE subtasks.status_id IN (#{new_status}) AND subtasks.parent_id=`issues`.id)").each do |issue|
+            Issue.where("tracker_id=#{tracker} AND id IN (SELECT subtasks.parent_id from issues AS subtasks WHERE subtasks.status_id IN (#{new_status}) AND subtasks.parent_id=`issues`.id)").each do |issue|
                 i = Issue.find issue.id
                 if is_higher_status(i.status_id, new_status) then
                     

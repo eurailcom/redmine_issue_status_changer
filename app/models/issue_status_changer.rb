@@ -49,7 +49,7 @@ module IssueStatusChanger
         settings = Setting['plugin_redmine_issue_status_changer'] || {}
 
         enabled_trackers = get_enabled_trackers(state)
-        if enabled_trackers then
+        enabled_trackers.split(',').each { |tracker|
             if state == 'close' then
                 change_state = get_open_status()
                 test = "="
@@ -59,8 +59,9 @@ module IssueStatusChanger
                 test = "<"
                 status_message = settings['status_message_open']
             end
+            protected_status = settings[:new_status]['protected_status'][tracker].join(",")
 
-            Issue.where("done_ratio#{test}100 AND tracker_id IN (#{enabled_trackers}) AND status_id IN (#{change_state}) AND id IN (SELECT parent_id FROM issues)").each do |issue|
+            Issue.where("done_ratio#{test}100 AND tracker_id=#{tracker} AND status_id IN (#{change_state}) AND status_id NOT IN (#{protected_status}) AND id IN (SELECT parent_id FROM issues)").each do |issue|
                 i = Issue.find issue.id
                 new_status = IssueStatus.find get_next_state(i.tracker_id, state)
 
@@ -68,7 +69,7 @@ module IssueStatusChanger
                 i.init_journal(User.anonymous, status_message)
                 i.update_attribute :status,  new_status
             end
-        end
+        }
     end
 
     def self.__change_issues_on_subtask_status()
@@ -81,8 +82,9 @@ module IssueStatusChanger
 
             old_status = settings[:new_status]['additional_from'][tracker]
             new_status = settings[:new_status]['additional_to'][tracker]
+            protected_status = settings[:new_status]['protected_status'][tracker].join(",")
 
-            Issue.where("tracker_id=#{tracker} AND id IN (SELECT subtasks.parent_id from issues AS subtasks WHERE subtasks.status_id IN (#{new_status}) AND subtasks.parent_id=`issues`.id)").each do |issue|
+            Issue.where("tracker_id=#{tracker} AND id IN (SELECT subtasks.parent_id from issues AS subtasks WHERE subtasks.status_id IN (#{new_status}) AND status_id NOT IN (#{protected_status}) AND subtasks.parent_id=`issues`.id)").each do |issue|
                 i = Issue.find issue.id
                 if is_higher_status(i.status_id, new_status) then
                     

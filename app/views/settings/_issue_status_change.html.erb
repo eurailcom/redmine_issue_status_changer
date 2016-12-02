@@ -13,6 +13,8 @@
 <% settings['new_status']['additional_from'] = Hash.new if settings['new_status']['additional_from'] == nil %>
 <% settings['new_status']['additional_to'] = Hash.new if settings['new_status']['additional_to'] == nil %>
 
+<% settings['new_status']['protected_status'] = Hash.new if settings['new_status']['protected_status'] == nil %>
+
 <% settings['status_message_closed'] = l(:status_message_closed) if settings['status_message_closed'] == nil %>
 <% settings['status_message_open'] = l(:status_message_open) if settings['status_message_open'] == nil %>
 <% settings['status_message_additional'] = l(:status_message_additional) if settings['status_message_additional'] == nil %>
@@ -43,7 +45,7 @@
         <%= check_box_tag "settings[status_change][close][#{tracker.id}]", "1", @settings[:status_change]['close'][tracker.id.to_s] %>
         <br/><br/>
         <label id="settings_new_status_close_<%= tracker.id %>_label"><%= l(:new_status) %></label>
-        <%= select_tag "settings[new_status][close][#{tracker.id}", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 1).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['close'][tracker.id.to_s]) %>
+        <%= select_tag "settings[new_status][close][#{tracker.id}]", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 1).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['close'][tracker.id.to_s]) %>
     </p>
 
     <p>
@@ -51,19 +53,28 @@
         <%= check_box_tag "settings[status_change][open][#{tracker.id}]", "1", @settings[:status_change]['open'][tracker.id.to_s] %>
         <br/><br/>
         <label id="settings_new_status_open_<%= tracker.id %>_label"><%= l(:new_status) %></label>
-        <%= select_tag "settings[new_status][open][#{tracker.id}", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 0).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['open'][tracker.id.to_s]) %>
+        <%= select_tag "settings[new_status][open][#{tracker.id}]", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 0).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['open'][tracker.id.to_s]) %>
     </p>
 
     <p>
-        <label>Additional status change</label>
+        <label><%= l(:additional_status_change_label) %></label>
         <%= check_box_tag "settings[status_change][additional][#{tracker.id}]", "1", @settings[:status_change]['additional'][tracker.id.to_s] %>
         <br/>
         <span id="new_status_additional_<%= tracker.id %>">
-        If the status of one of the subtasks is
-        <%= select_tag "settings[new_status][additional_from][#{tracker.id}", options_for_select(IssueStatus.all.map {|s| [s.name, s.id]},@settings[:new_status]['additional_from'][tracker.id.to_s]) %>
-        change to
-        <%= select_tag "settings[new_status][additional_to][#{tracker.id}", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['additional_to'][tracker.id.to_s]) %>
+        <%= l(:additional_status_change_description_1) %>
+        <%= select_tag "settings[new_status][additional_from][#{tracker.id}]", options_for_select(IssueStatus.all.map {|s| [s.name, s.id]},@settings[:new_status]['additional_from'][tracker.id.to_s]) %>
+        <%= l(:additional_status_change_description_2) %>
+        <%= select_tag "settings[new_status][additional_to][#{tracker.id}]", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['additional_to'][tracker.id.to_s]) %>
         </span>
+
+    </p>
+
+    <p>
+        <label id="settings_new_status_protected_status_<%= tracker.id %>_label"><%= l(:protected_status_label) %></label>
+        <span id="new_status_protected_status_<%= tracker.id %>">
+        <%= select_tag "settings[new_status][protected_status][#{tracker.id}]", options_for_select(IssueStatus.all.map {|s| [s.name, s.id]},@settings[:new_status]['protected_status'][tracker.id.to_s]), :multiple => true %>
+        </span>
+    </p>
 </fieldset>
 <% end %>
 
@@ -79,6 +90,7 @@ $(document).ready(function() {
       $('#settings_new_status_close_'+tracker_id).hide();
       $('#settings_new_status_close_'+tracker_id+'_label').hide();
     }
+    toggle_protected_status_box(tracker_id);
   });
 
   $('[id^=settings_status_change_open_]').click(function() {
@@ -91,6 +103,7 @@ $(document).ready(function() {
       $('#settings_new_status_open_'+tracker_id).hide();
       $('#settings_new_status_open_'+tracker_id+'_label').hide();
     }
+    toggle_protected_status_box(tracker_id);
   });
 
   $('[id^=settings_status_change_additional_]').click(function() {
@@ -101,23 +114,38 @@ $(document).ready(function() {
     else {
       $('#new_status_additional_'+tracker_id).hide();
     }
+    toggle_protected_status_box(tracker_id);
   });
 
   $('[id^=settings_status_change_open_]:not(:checked)').each(function(index) {
     tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
     $('#settings_new_status_open_'+tracker_id).hide();
     $('#settings_new_status_open_'+tracker_id+'_label').hide();
+    toggle_protected_status_box(tracker_id);
   });
 
   $('[id^=settings_status_change_close_]:not(:checked)').each(function(index) {
     tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
     $('#settings_new_status_close_'+tracker_id).hide();
     $('#settings_new_status_close_'+tracker_id+'_label').hide();
+    toggle_protected_status_box(tracker_id);
   });
 
   $('[id^=settings_status_change_additional_]:not(:checked)').each(function(index) {
     tracker_id = this.id.substring(this.id.lastIndexOf("_")+1);
     $('#new_status_additional_'+tracker_id).hide();
+    toggle_protected_status_box(tracker_id);
   });
 });
+
+function toggle_protected_status_box(tracker_id) {
+  if ($('#settings_status_change_close_'+tracker_id).is(':checked') || $('#settings_status_change_open_'+tracker_id).is(':checked') || $('#settings_status_change_additional_'+tracker_id).is(':checked')) {
+    $('#settings_new_status_protected_status_'+tracker_id).show();
+    $('#settings_new_status_protected_status_'+tracker_id+'_label').show();
+  }
+  else {
+    $('#settings_new_status_protected_status_'+tracker_id).hide();
+    $('#settings_new_status_protected_status_'+tracker_id+'_label').hide();
+    }
+}
 <% end %>

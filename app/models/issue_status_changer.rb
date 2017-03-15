@@ -59,7 +59,8 @@ module IssueStatusChanger
                 test = "<"
                 status_message = settings['status_message_open']
             end
-            protected_status = settings[:new_status]['protected_status'][tracker].join(",")
+            protected_trackers = settings[:new_status]['protected_status'][tracker] || ['999']
+            protected_status = protected_trackers.join(",")
 
             Issue.where("done_ratio#{test}100 AND tracker_id=#{tracker} AND status_id IN (#{change_state}) AND status_id NOT IN (#{protected_status}) AND id IN (SELECT parent_id FROM issues)").each do |issue|
                 i = Issue.find issue.id

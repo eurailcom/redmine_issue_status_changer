@@ -5,7 +5,7 @@ Redmine::Plugin.register :redmine_issue_status_changer do
   author 'Daniel Vijge'
   description 'Automatically change status of issues based on status of subtasks'
   version '0.0.2'
-  url 'https://github.com/danielvijge/redmine_issue_status_changer'
+  url 'https://github.com/eurailcom/redmine_issue_status_changer'
   author_url 'https://github.com/danielvijge'
   requires_redmine version_or_higher: '2.1.0'
 

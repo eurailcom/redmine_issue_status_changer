@@ -15,23 +15,32 @@
 
 <% settings['new_status']['protected_status'] = Hash.new if settings['new_status']['protected_status'] == nil %>
 
+<% settings['change_target_version'] = Hash.new if settings['change_target_version'] == nil %>
+
 <% settings['status_message_closed'] = l(:status_message_closed) if settings['status_message_closed'] == nil %>
 <% settings['status_message_open'] = l(:status_message_open) if settings['status_message_open'] == nil %>
 <% settings['status_message_additional'] = l(:status_message_additional) if settings['status_message_additional'] == nil %>
+<% settings['status_message_target_version'] = l(:status_message_target_version) if settings['status_message_target_version'] == nil %>
+
+<% puts @settings %>
 
 <fieldset>
   <legend><%= l(:status_message_legend) %></legend>
   <p>
     <label><%= l(:status_message_label_closed) %></label>
-    <%= text_field_tag "settings[status_message_closed]", settings[:status_message_closed] %>
+    <%= text_field_tag "settings[status_message_closed]", settings['status_message_closed'] %>
   </p>
   <p>
     <label><%= l(:status_message_label_open) %></label>
-    <%= text_field_tag "settings[status_message_open]", settings[:status_message_open] %>
+    <%= text_field_tag "settings[status_message_open]", settings['status_message_open'] %>
   </p>
   <p>
     <label><%= l(:status_message_label_additional) %></label>
-    <%= text_field_tag "settings[status_message_additional]", settings[:status_message_additional] %>
+    <%= text_field_tag "settings[status_message_additional]", settings['status_message_additional'] %>
+  </p>
+  <p>
+    <label><%= l(:status_message_label_additional) %></label>
+    <%= text_field_tag "settings[status_message_target_version]", settings['status_message_target_version'] %>
   </p>
 
 </fieldset>
@@ -42,29 +51,29 @@
     <legend><%= tracker.name %></legend>
     <p>
         <label><%= l(:change_closed_label) %></label>
-        <%= check_box_tag "settings[status_change][close][#{tracker.id}]", "1", @settings[:status_change]['close'][tracker.id.to_s] %>
+        <%= check_box_tag "settings[status_change][close][#{tracker.id}]", "1", @settings['status_change']['close'][tracker.id.to_s] %>
         <br/><br/>
         <label id="settings_new_status_close_<%= tracker.id %>_label"><%= l(:new_status) %></label>
-        <%= select_tag "settings[new_status][close][#{tracker.id}]", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 1).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['close'][tracker.id.to_s]) %>
+        <%= select_tag "settings[new_status][close][#{tracker.id}]", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 1).uniq.map {|s| [s.name, s.id]},@settings['new_status']['close'][tracker.id.to_s]) %>
     </p>
 
     <p>
         <label><%= l(:change_open_label) %></label>
-        <%= check_box_tag "settings[status_change][open][#{tracker.id}]", "1", @settings[:status_change]['open'][tracker.id.to_s] %>
+        <%= check_box_tag "settings[status_change][open][#{tracker.id}]", "1", @settings['status_change']['open'][tracker.id.to_s] %>
         <br/><br/>
         <label id="settings_new_status_open_<%= tracker.id %>_label"><%= l(:new_status) %></label>
-        <%= select_tag "settings[new_status][open][#{tracker.id}]", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 0).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['open'][tracker.id.to_s]) %>
+        <%= select_tag "settings[new_status][open][#{tracker.id}]", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}, :is_closed => 0).uniq.map {|s| [s.name, s.id]},@settings['new_status']['open'][tracker.id.to_s]) %>
     </p>
 
     <p>
         <label><%= l(:additional_status_change_label) %></label>
-        <%= check_box_tag "settings[status_change][additional][#{tracker.id}]", "1", @settings[:status_change]['additional'][tracker.id.to_s] %>
+        <%= check_box_tag "settings[status_change][additional][#{tracker.id}]", "1", @settings['status_change']['additional'][tracker.id.to_s] %>
         <br/>
         <span id="new_status_additional_<%= tracker.id %>">
         <%= l(:additional_status_change_description_1) %>
-        <%= select_tag "settings[new_status][additional_from][#{tracker.id}]", options_for_select(IssueStatus.all.map {|s| [s.name, s.id]},@settings[:new_status]['additional_from'][tracker.id.to_s]) %>
+        <%= select_tag "settings[new_status][additional_from][#{tracker.id}]", options_for_select(IssueStatus.all.map {|s| [s.name, s.id]},@settings['new_status']['additional_from'][tracker.id.to_s]) %>
         <%= l(:additional_status_change_description_2) %>
-        <%= select_tag "settings[new_status][additional_to][#{tracker.id}]", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}).uniq.map {|s| [s.name, s.id]},@settings[:new_status]['additional_to'][tracker.id.to_s]) %>
+        <%= select_tag "settings[new_status][additional_to][#{tracker.id}]", options_for_select(IssueStatus.joins(:workflows).where(:workflows => {:tracker_id => tracker.id}).uniq.map {|s| [s.name, s.id]},@settings['new_status']['additional_to'][tracker.id.to_s]) %>
         </span>
 
     </p>
@@ -72,8 +81,13 @@
     <p>
         <label id="settings_new_status_protected_status_<%= tracker.id %>_label"><%= l(:protected_status_label) %></label>
         <span id="new_status_protected_status_<%= tracker.id %>">
-        <%= select_tag "settings[new_status][protected_status][#{tracker.id}]", options_for_select(IssueStatus.all.map {|s| [s.name, s.id]},@settings[:new_status]['protected_status'][tracker.id.to_s]), :multiple => true %>
+        <%= select_tag "settings[new_status][protected_status][#{tracker.id}]", options_for_select(IssueStatus.all.map {|s| [s.name, s.id]},@settings['new_status']['protected_status'][tracker.id.to_s]), :multiple => true %>
         </span>
+    </p>
+
+    <p>
+        <label><%= l(:change_fixed_version) %></label>
+        <%= check_box_tag "settings[change_target_version][#{tracker.id}]", "1", @settings['change_target_version'][tracker.id.to_s] %>
     </p>
 </fieldset>
 <% end %>

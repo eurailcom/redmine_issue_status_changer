@@ -28,6 +28,13 @@ if one of the subtasks has a status 'In progress', the parent issue can also be 
 
 `rake redmine:plugins:issue_status_change:change_issues_on_subtask_status RAILS_ENV=production`
 
+### Change target version ###
+
+If the target version of the subtask is different than the target version of the parent task, update
+the target version of the subtask
+
+`rake redmine:plugins:issue_status_change:change_target_version RAILS_ENV=production`
+
 ## Configuration ##
 
 Status changes can be configured per tracker. For each tracker, you can set if the task should change the

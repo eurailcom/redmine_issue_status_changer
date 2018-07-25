@@ -45,9 +45,14 @@ module IssueStatusChanger
         __change_issues_on_subtask_status()
     end
 
+    def self.change_target_version
+        __change_target_version()
+    end
+
     def self.issue_change_state(state)
         settings = Setting['plugin_redmine_issue_status_changer'] || {}
 
+        # TODO: do not close issues that have related issues blocked by
         enabled_trackers = get_enabled_trackers(state)
         enabled_trackers.split(',').each { |tracker|
             if state == 'close' then
@@ -62,8 +67,13 @@ module IssueStatusChanger
             protected_trackers = settings[:new_status]['protected_status'][tracker] || ['999']
             protected_status = protected_trackers.join(",")
 
+            # TODO: Do not rely on SQL query any more
             Issue.where("done_ratio#{test}100 AND tracker_id=#{tracker} AND status_id IN (#{change_state}) AND status_id NOT IN (#{protected_status}) AND id IN (SELECT parent_id FROM issues)").each do |issue|
                 i = Issue.find issue.id
+                if i.relations_to.where(:relation_type => 'blocks').count > 0 then
+                    # TODO: add skipped issues to an array and process again. A later iteration might close the blocking issue
+                    next
+                end
                 new_status = IssueStatus.find get_next_state(i.tracker_id, state)
 
                 puts i.id.to_s + " " + i.subject + ": " + (IssueStatus.find i.status_id).name + " --> " + new_status.name
@@ -94,6 +104,38 @@ module IssueStatusChanger
                     i.init_journal(User.anonymous, status_message)
                     i.update_attribute :status, (IssueStatus.find new_status)
                 end
+            end
+        }
+    end
+
+    def self.__change_target_version()
+        settings = Setting['plugin_redmine_issue_status_changer'] || {}
+        enabled_trackers =  settings['change_target_version'].keys.join(',')
+
+        status_message = settings['status_message_target_version']
+
+        enabled_trackers.split(',').each { |tracker|
+
+            Issue.joins(:status).joins('INNER JOIN `issues` AS parent ON parent.id=`issues`.parent_id').where(:tracker_id => 3).where('issue_statuses.is_closed=0').where('`issues`.fixed_version_id!=parent.fixed_version_id OR (parent.fixed_version_id IS NULL AND `issues`.fixed_version_id IS NOT NULL) OR (parent.fixed_version_id IS NOT NULL and `issues`.fixed_version_id IS NULL)').each do |issue|
+                i = Issue.find issue.id
+
+                if i.fixed_version_id? then
+                    current_version = Version.find(i.fixed_version_id).name
+                else
+                    current_version = 'None'
+                end 
+
+                if i.parent.fixed_version_id? then
+                    new_version = Version.find(i.parent.fixed_version_id).name
+                    new_version_id = i.parent.fixed_version_id
+                else
+                    new_version = 'None'
+                    new_version_id = nil
+                end 
+
+                puts i.id.to_s + " " + i.subject + ": " + current_version + " --> " + new_version
+                i.init_journal(User.anonymous, status_message)
+                i.update_attribute :fixed_version_id, new_version_id
             end
         }
     end

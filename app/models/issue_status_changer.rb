@@ -64,7 +64,7 @@ module IssueStatusChanger
                 test = "<"
                 status_message = settings['status_message_open']
             end
-            protected_trackers = settings[:new_status]['protected_status'][tracker] || ['999']
+            protected_trackers = settings['new_status']['protected_status'][tracker] || ['999']
             protected_status = protected_trackers.join(",")
 
             # TODO: Do not rely on SQL query any more
@@ -91,9 +91,9 @@ module IssueStatusChanger
         
         enabled_trackers.split(',').each { |tracker|
 
-            old_status = settings[:new_status]['additional_from'][tracker]
-            new_status = settings[:new_status]['additional_to'][tracker]
-            protected_status = settings[:new_status]['protected_status'][tracker].join(",")
+            old_status = settings['new_status']['additional_from'][tracker]
+            new_status = settings['new_status']['additional_to'][tracker]
+            protected_status = settings['new_status']['protected_status'][tracker].join(",")
 
             Issue.where("tracker_id=#{tracker} AND id IN (SELECT subtasks.parent_id from issues AS subtasks WHERE subtasks.status_id IN (#{new_status}) AND status_id NOT IN (#{protected_status}) AND subtasks.parent_id=`issues`.id)").each do |issue|
                 i = Issue.find issue.id

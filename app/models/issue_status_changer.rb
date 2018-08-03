@@ -116,7 +116,7 @@ module IssueStatusChanger
 
         enabled_trackers.split(',').each { |tracker|
 
-            Issue.joins(:status).joins('INNER JOIN `issues` AS parent ON parent.id=`issues`.parent_id').where(:tracker_id => 3).where('issue_statuses.is_closed=0').where('`issues`.fixed_version_id!=parent.fixed_version_id OR (parent.fixed_version_id IS NULL AND `issues`.fixed_version_id IS NOT NULL) OR (parent.fixed_version_id IS NOT NULL and `issues`.fixed_version_id IS NULL)').each do |issue|
+            Issue.joins(:status).joins('INNER JOIN `issues` AS parent ON parent.id=`issues`.parent_id').where(:tracker_id => tracker).where('issue_statuses.is_closed=0').where('`issues`.fixed_version_id!=parent.fixed_version_id OR (parent.fixed_version_id IS NULL AND `issues`.fixed_version_id IS NOT NULL) OR (parent.fixed_version_id IS NOT NULL and `issues`.fixed_version_id IS NULL)').each do |issue|
                 i = Issue.find issue.id
 
                 if i.fixed_version_id? then

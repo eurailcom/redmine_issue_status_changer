@@ -2,6 +2,8 @@
 <%= l(:issue_status_change_help) %>
 <pre><%= l(:issue_status_change_rake_task) %></pre>
 
+<% settings['status_change'] = Hash.new if settings['status_change'] == nil %>
+<% settings['new_status'] = Hash.new if settings['new_status'] == nil %>
 
 <% settings['status_change']['close'] = Hash.new if settings['status_change']['close'] == nil %>
 <% settings['new_status']['close'] = Hash.new if settings['new_status']['close'] == nil %>
